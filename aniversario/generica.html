@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ábrelo — Aniversario</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#0a0608;font-family:'Montserrat',sans-serif;}
+
+/* ━━ PARALLAX BACKGROUND ━━ */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(180,40,80,0.18) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 80% at 20% 80%, rgba(120,20,60,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 20%, rgba(200,60,90,0.1) 0%, transparent 55%),
+    #0a0608;
+  transition:transform 0.1s ease-out;
+  will-change:transform;
+}
+
+/* ━━ PHOTO LAYER ━━ */
+#photo-layer{
+  position:fixed;inset:0;z-index:1;
+  background-size:cover;background-position:center;
+  opacity:0;transition:opacity 2s ease;
+}
+#photo-layer::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(10,6,8,0.55) 0%,rgba(10,6,8,0.3) 40%,rgba(10,6,8,0.75) 100%);
+}
+
+/* ━━ PARTICLES CANVAS ━━ */
+#particles{position:fixed;inset:0;z-index:2;pointer-events:none;}
+
+/* ━━ PETALS CANVAS ━━ */
+#petals{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity 2s ease;}
+
+/* ━━ SCREEN: INTRO ━━ */
+#screen-intro{
+  position:fixed;inset:0;z-index:20;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.intro-pulse{
+  width:80px;height:80px;border-radius:50%;
+  border:0.5px solid rgba(200,80,100,0.4);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;margin-bottom:32px;
+  animation:heartbeat 1.8s ease-in-out infinite;
+}
+.intro-pulse::before,.intro-pulse::after{
+  content:'';position:absolute;inset:-12px;border-radius:50%;
+  border:0.5px solid rgba(200,80,100,0.15);
+  animation:ripple 1.8s ease-out infinite;
+}
+.intro-pulse::after{animation-delay:0.6s;}
+.heart-svg{width:28px;height:28px;fill:rgba(220,80,100,0.9);}
+@keyframes heartbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.08);}28%{transform:scale(1);}42%{transform:scale(1.05);}70%{transform:scale(1);}}
+@keyframes ripple{0%{transform:scale(1);opacity:0.4;}100%{transform:scale(1.5);opacity:0;}}
+
+.intro-para{font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.25);margin-bottom:12px;}
+.intro-name{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(40px,10vw,68px);color:#fff;line-height:1;margin-bottom:6px;
+  opacity:0;animation:fadeUp 1s ease 0.8s forwards;
+}
+.intro-sub{font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.2);
+  opacity:0;animation:fadeUp 0.8s ease 1.6s forwards;}
+.intro-hint{
+  position:absolute;bottom:44px;
+  font-size:9px;letter-spacing:0.3em;text-transform:uppercase;
+  color:rgba(255,255,255,0.2);
+  animation:breathe 2.5s ease-in-out infinite 2.8s;opacity:0;
+}
+@keyframes breathe{0%,100%{opacity:0.15;}50%{opacity:0.5;}}
+
+/* ━━ SCREEN: COUNTDOWN ━━ */
+#screen-count{
+  position:fixed;inset:0;z-index:18;
+  display:none;align-items:center;justify-content:center;
+  flex-direction:column;
+}
+.count-num{
+  font-family:'Cormorant Garamond',serif;font-weight:300;
+  font-size:clamp(100px,25vw,180px);color:#fff;line-height:1;
+  opacity:0;transform:scale(1.4);
+  transition:opacity 0.4s ease,transform 0.4s ease;
+}
+.count-num.show{opacity:1;transform:scale(1);}
+.count-num.hide{opacity:0;transform:scale(0.6);}
+
+/* ━━ SCREEN: PHRASES ━━ */
+#screen-phrases{
+  position:fixed;inset:0;z-index:17;
+  display:none;align-items:center;justify-content:center;
+  padding:40px;
+}
+.phrase-text{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(18px,5vw,30px);color:#fff;
+  text-align:center;line-height:1.7;letter-spacing:0.02em;
+  opacity:0;
+}
+.phrase-char{display:inline;opacity:0;}
+
+/* ━━ SCREEN: CARD ━━ */
+#screen-card{
+  position:fixed;inset:0;z-index:16;
+  display:none;align-items:flex-start;justify-content:center;
+  padding:60px 24px 60px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  opacity:0;transition:opacity 1s ease;
+}
+
+.card-scene{width:100%;max-width:400px;margin:auto;}
+
+/* floating elements */
+.floaters{position:relative;height:60px;margin-bottom:-20px;}
+.floater{
+  position:absolute;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;
+  color:rgba(220,80,100,0.5);
+  animation:float3d 4s ease-in-out infinite;
+}
+.floater:nth-child(1){left:10%;animation-delay:0s;}
+.floater:nth-child(2){left:50%;transform:translateX(-50%);animation-delay:0.8s;}
+.floater:nth-child(3){right:10%;animation-delay:1.6s;}
+@keyframes float3d{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+.card{
+  background:rgba(255,255,255,0.04);
+  border:0.5px solid rgba(255,255,255,0.1);
+  border-radius:3px;overflow:hidden;
+  backdrop-filter:blur(20px);
+  box-shadow:0 40px 80px rgba(0,0,0,0.6),inset 0 0.5px 0 rgba(255,255,255,0.08);
+}
+
+/* card header */
+.card-header{
+  padding:48px 36px 40px;text-align:center;
+  border-bottom:0.5px solid rgba(255,255,255,0.06);
+  position:relative;overflow:hidden;
+}
+.card-header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,60,80,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.years-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:0.5px solid rgba(200,80,100,0.3);
+  padding:6px 18px;border-radius:40px;
+  font-size:10px;letter-spacing:0.2em;text-transform:uppercase;
+  color:rgba(220,100,120,0.8);margin-bottom:24px;
+}
+.badge-dot{width:4px;height:4px;border-radius:50%;background:rgba(220,100,120,0.8);}
+
+.card-names{
+  font-family:'Cormorant Garamond',serif;font-weight:300;
+  font-size:clamp(28px,7vw,44px);color:#fff;line-height:1.1;margin-bottom:6px;
+}
+.card-names em{font-style:italic;color:rgba(220,130,150,0.9);}
+.card-amp{color:rgba(255,255,255,0.2);font-style:normal;margin:0 8px;}
+
+.card-date{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:0;}
+
+/* card body */
+.card-body{padding:36px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+.card-message{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(15px,4vw,19px);color:rgba(255,255,255,0.7);
+  line-height:1.9;text-align:center;
+}
+.msg-char{display:inline;opacity:0;transition:opacity 0.05s;}
+
+/* timeline */
+.timeline{
+  margin-top:32px;display:flex;flex-direction:column;gap:0;
+  border-left:0.5px solid rgba(255,255,255,0.08);padding-left:20px;
+}
+.tl-item{
+  padding:12px 0;position:relative;
+  opacity:0;transform:translateX(-8px);
+  transition:opacity 0.5s ease,transform 0.5s ease;
+}
+.tl-item.on{opacity:1;transform:translateX(0);}
+.tl-item::before{
+  content:'';position:absolute;left:-24px;top:18px;
+  width:6px;height:6px;border-radius:50%;
+  border:0.5px solid rgba(220,80,100,0.5);
+  background:rgba(220,80,100,0.2);
+}
+.tl-date{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(220,80,100,0.5);margin-bottom:3px;}
+.tl-text{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;}
+
+/* card footer */
+.card-footer{padding:20px 36px;display:flex;justify-content:space-between;align-items:center;}
+.from-wrap{}
+.from-lbl{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.18);margin-bottom:4px;}
+.from-val{
+  font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;
+  color:rgba(255,255,255,0.6);
+}
+.brand-lbl{font-size:9px;letter-spacing:0.15em;color:rgba(255,255,255,0.12);text-align:right;line-height:1.7;}
+.brand-lbl span{color:rgba(220,80,100,0.4);}
+
+/* ━━ LETTERBOX ━━ */
+.bar{position:fixed;left:0;right:0;background:#0a0608;z-index:30;height:0;transition:height 1s cubic-bezier(0.4,0,0.2,1);}
+#bar-t{top:0;}#bar-b{bottom:0;}
+
+/* ━━ UTILS ━━ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.ri{opacity:0;}
+.ri.on{animation:fadeUp 0.9s ease forwards;}
+
+/* ━━ AUDIO ━━ */
+#audio-btn{
+  position:fixed;top:18px;right:18px;z-index:100;
+  width:34px;height:34px;border-radius:50%;
+  border:0.5px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.04);
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;font-size:13px;backdrop-filter:blur(8px);
+  transition:background 0.2s;
+}
+#audio-btn.show{display:flex;}
+#audio-btn:hover{background:rgba(255,255,255,0.1);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     ✏️  EDITA AQUÍ
+══════════════════════════════ -->
+<script>
+const C = {
+  para:        "Sofía",
+  pareja:      "Mateo",
+  anos:        "3",
+  fecha:       "23 de marzo, 2022",
+  mensaje:     "Tres años no son solo tiempo. Son miles de momentos pequeños que juntos se convirtieron en lo más grande que tengo. Gracias por elegirme cada día.",
+  de:          "Con todo mi amor, Mateo",
+  foto:        "",       // URL de foto de fondo (opcional)
+  musica:      "",       // URL de .mp3 (opcional)
+  // Línea del tiempo — puedes agregar o quitar
+  timeline: [
+    { fecha: "Marzo 2022",     texto: "El día que todo empezó." },
+    { fecha: "Diciembre 2022", texto: "Nuestro primer viaje juntos." },
+    { fecha: "Hoy",            texto: "Tres años y sigues siendo mi favorita." },
+  ],
+};
+</script>
+<!-- ══════════════════════════════ -->
+
+<div id="bg"></div>
+<div id="photo-layer"></div>
+<canvas id="particles"></canvas>
+<canvas id="petals"></canvas>
+
+<div class="bar" id="bar-t"></div>
+<div class="bar" id="bar-b"></div>
+<button id="audio-btn" onclick="toggleAudio()">🔇</button>
+
+<!-- INTRO -->
+<div id="screen-intro" onclick="startExperience()">
+  <div class="intro-pulse">
+    <svg class="heart-svg" viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+  </div>
+  <p class="intro-para">un mensaje para</p>
+  <h1 class="intro-name" id="introName"></h1>
+  <p class="intro-sub">· ábrelo ·</p>
+  <p class="intro-hint">toca para comenzar</p>
+</div>
+
+<!-- COUNTDOWN -->
+<div id="screen-count" style="display:none;position:fixed;inset:0;z-index:18;display:none;align-items:center;justify-content:center;">
+  <div class="count-num" id="countNum">3</div>
+</div>
+
+<!-- PHRASES -->
+<div id="screen-phrases" style="display:none;">
+  <p class="phrase-text" id="phraseText"></p>
+</div>
+
+<!-- CARD -->
+<div id="screen-card">
+  <div class="card-scene">
+    <div class="floaters">
+      <span class="floater">amor</span>
+      <span class="floater">✦</span>
+      <span class="floater">siempre</span>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="years-badge ri" id="r0">
+          <span class="badge-dot"></span>
+          <span id="anosLabel"></span>
+          <span class="badge-dot"></span>
+        </div>
+        <h2 class="card-names ri" id="r1">
+          <em id="name1"></em><span class="card-amp">&</span><em id="name2"></em>
+        </h2>
+        <p class="card-date ri" id="r2"></p>
+      </div>
+      <div class="card-body">
+        <p class="card-message" id="cardMsg"></p>
+        <div class="timeline" id="timeline"></div>
+      </div>
+      <div class="card-footer">
+        <div class="from-wrap ri" id="r3">
+          <p class="from-lbl">de parte de</p>
+          <p class="from-val" id="fromVal"></p>
+        </div>
+        <div class="brand-lbl ri" id="r4">enviado con<br><span>Ábrelo ✦</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ━━ INIT ━━
+document.getElementById('introName').textContent = C.para;
+document.getElementById('anosLabel').textContent = C.anos + ' años juntos';
+document.getElementById('name1').textContent = C.para;
+document.getElementById('name2').textContent = C.pareja;
+document.getElementById('r2').textContent = C.fecha;
+document.getElementById('fromVal').textContent = C.de;
+
+if(C.foto){
+  const pl = document.getElementById('photo-layer');
+  pl.style.backgroundImage = `url('${C.foto}')`;
+  pl.style.opacity = '0.35';
+}
+
+if(C.musica){
+  window._aud = new Audio(C.musica);
+  window._aud.loop = true; window._aud.volume = 0.45;
+  document.getElementById('audio-btn').classList.add('show');
+}
+
+// Timeline
+const tlEl = document.getElementById('timeline');
+C.timeline.forEach(item => {
+  const d = document.createElement('div');
+  d.className = 'tl-item';
+  d.innerHTML = `<p class="tl-date">${item.fecha}</p><p class="tl-text">${item.texto}</p>`;
+  tlEl.appendChild(d);
+});
+
+// ━━ PARTICLES ━━
+const pCanvas = document.getElementById('particles');
+const pCtx = pCanvas.getContext('2d');
+function resizeP(){ pCanvas.width=window.innerWidth; pCanvas.height=window.innerHeight; }
+resizeP(); window.addEventListener('resize',resizeP);
+
+const pts = Array.from({length:60},()=>({
+  x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight,
+  vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3,
+  r:Math.random()*1.5+0.3, a:Math.random(),
+}));
+
+function animParticles(){
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  pts.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0)p.x=pCanvas.width; if(p.x>pCanvas.width)p.x=0;
+    if(p.y<0)p.y=pCanvas.height; if(p.y>pCanvas.height)p.y=0;
+    pCtx.globalAlpha=p.a*0.5;
+    pCtx.fillStyle='#fff';
+    pCtx.beginPath(); pCtx.arc(p.x,p.y,p.r,0,Math.PI*2); pCtx.fill();
+  });
+  pCtx.globalAlpha=1;
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// ━━ PARALLAX ━━
+document.addEventListener('mousemove',e=>{
+  const x=(e.clientX/window.innerWidth-0.5)*20;
+  const y=(e.clientY/window.innerHeight-0.5)*20;
+  document.getElementById('bg').style.transform=`translate(${x}px,${y}px) scale(1.05)`;
+});
+
+// ━━ AUDIO ━━
+let audPlay=false;
+function toggleAudio(){
+  if(!window._aud)return;
+  if(audPlay){window._aud.pause();document.getElementById('audio-btn').textContent='🔇';}
+  else{window._aud.play();document.getElementById('audio-btn').textContent='🔊';}
+  audPlay=!audPlay;
+}
+
+// ━━ EXPERIENCE ━━
+function startExperience(){
+  document.getElementById('screen-intro').style.display='none';
+  if(window._aud){window._aud.play();audPlay=true;document.getElementById('audio-btn').textContent='🔊';}
+  runCountdown();
+}
+
+function runCountdown(){
+  const sc=document.getElementById('screen-count');
+  const num=document.getElementById('countNum');
+  sc.style.display='flex';
+  let n=3;
+  function tick(){
+    num.className='count-num show';
+    num.textContent=n===0?'♥':n;
+    setTimeout(()=>{
+      num.className='count-num hide';
+      setTimeout(()=>{
+        if(n===0){ sc.style.display='none'; runPhrases(); return; }
+        n--; tick();
+      },300);
+    },700);
+  }
+  tick();
+}
+
+const PHRASES=[
+  "Hay fechas que no se olvidan.",
+  "Hay personas que cambian todo.",
+  "Y hay amor que merece ser celebrado."
+];
+
+function runPhrases(){
+  const sc=document.getElementById('screen-phrases');
+  const txt=document.getElementById('phraseText');
+  sc.style.display='flex';
+  document.getElementById('petals').style.opacity='1';
+  startPetals();
+  let i=0;
+  function showPhrase(){
+    if(i>=PHRASES.length){ sc.style.display='none'; showCard(); return; }
+    txt.innerHTML='';
+    // letter by letter
+    const chars=PHRASES[i].split('');
+    txt.style.opacity='1';
+    chars.forEach((ch,idx)=>{
+      const s=document.createElement('span');
+      s.className='phrase-char';
+      s.textContent=ch==' '?'\u00a0':ch;
+      txt.appendChild(s);
+      setTimeout(()=>{ s.style.opacity='1'; },idx*40);
+    });
+    const totalIn=chars.length*40+400;
+    setTimeout(()=>{
+      txt.style.transition='opacity 0.6s ease';
+      txt.style.opacity='0';
+      setTimeout(()=>{ txt.style.transition=''; i++; showPhrase(); },700);
+    },totalIn+1400);
+  }
+  showPhrase();
+}
+
+function showCard(){
+  document.getElementById('bar-t').style.height='52px';
+  document.getElementById('bar-b').style.height='52px';
+  burstParticles();
+  const sc=document.getElementById('screen-card');
+  sc.style.display='flex';
+  setTimeout(()=>sc.style.opacity='1',50);
+  document.getElementById('audio-btn').classList.add('show');
+
+  ['r0','r1','r2','r3','r4'].forEach((id,i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById(id);
+      if(el){el.classList.add('on');el.style.animationDelay='0s';}
+    },400+i*200);
+  });
+
+  // typewriter message
+  setTimeout(()=>typeMessage(),600);
+
+  // timeline stagger
+  setTimeout(()=>{
+    document.querySelectorAll('.tl-item').forEach((el,i)=>{
+      setTimeout(()=>el.classList.add('on'),i*200);
+    });
+  },1400);
+}
+
+function typeMessage(){
+  const el=document.getElementById('cardMsg');
+  el.innerHTML='';
+  const text=`"${C.mensaje}"`;
+  text.split('').forEach((ch,i)=>{
+    const s=document.createElement('span');
+    s.className='msg-char';
+    s.textContent=ch===' '?'\u00a0':ch;
+    el.appendChild(s);
+    setTimeout(()=>s.style.opacity='1', i*18);
+  });
+}
+
+// ━━ PETALS ━━
+const petCanvas=document.getElementById('petals');
+const petCtx=petCanvas.getContext('2d');
+function resizePet(){petCanvas.width=window.innerWidth;petCanvas.height=window.innerHeight;}
+resizePet(); window.addEventListener('resize',resizePet);
+
+const petals=[];
+function makePetal(){
+  return{
+    x:Math.random()*petCanvas.width,
+    y:-10,
+    vx:(Math.random()-0.5)*1.5,
+    vy:0.8+Math.random()*1.2,
+    rot:Math.random()*Math.PI*2,
+    vr:(Math.random()-0.5)*0.04,
+    size:3+Math.random()*5,
+    alpha:0.4+Math.random()*0.4,
+    color:`hsl(${340+Math.random()*20},${60+Math.random()*20}%,${70+Math.random()*15}%)`,
+  };
+}
+let petalAnim=false;
+function startPetals(){
+  if(petalAnim)return; petalAnim=true;
+  for(let i=0;i<40;i++) petals.push(makePetal());
+  function drawPetals(){
+    petCtx.clearRect(0,0,petCanvas.width,petCanvas.height);
+    if(Math.random()<0.15) petals.push(makePetal());
+    for(let i=petals.length-1;i>=0;i--){
+      const p=petals[i];
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.vx+=Math.sin(p.y*0.02)*0.02;
+      petCtx.save();
+      petCtx.translate(p.x,p.y); petCtx.rotate(p.rot);
+      petCtx.globalAlpha=p.alpha;
+      petCtx.fillStyle=p.color;
+      petCtx.beginPath();
+      petCtx.ellipse(0,0,p.size,p.size*0.55,0,0,Math.PI*2);
+      petCtx.fill();
+      petCtx.restore();
+      if(p.y>petCanvas.height+20) petals.splice(i,1);
+    }
+    requestAnimationFrame(drawPetals);
+  }
+  drawPetals();
+}
+
+// ━━ BURST ━━
+function burstParticles(){
+  const tmp=document.createElement('canvas');
+  tmp.style.cssText='position:fixed;inset:0;width:100%;height:100%;z-index:19;pointer-events:none;';
+  tmp.width=window.innerWidth; tmp.height=window.innerHeight;
+  document.body.appendChild(tmp);
+  const ctx=tmp.getContext('2d');
+  const cx=tmp.width/2,cy=tmp.height/2;
+  const burst=Array.from({length:100},()=>{
+    const a=Math.random()*Math.PI*2, s=2+Math.random()*6;
+    return{x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+      life:1,decay:0.012+Math.random()*0.015,
+      color:`hsl(${340+Math.random()*20},70%,${65+Math.random()*20}%)`,
+      size:1.5+Math.random()*3};
+  });
+  let f=0;
+  function draw(){
+    ctx.clearRect(0,0,tmp.width,tmp.height);
+    burst.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;p.life-=p.decay;
+      if(p.life<=0)return;
+      ctx.globalAlpha=p.life;ctx.fillStyle=p.color;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1; f++;
+    if(f<140)requestAnimationFrame(draw);
+    else tmp.remove();
+  }
+  draw();
+}
+</script>
+</body>
+</html>

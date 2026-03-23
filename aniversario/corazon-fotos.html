@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ábrelo — Premium · Corazón de Recuerdos</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#09080c;font-family:'Montserrat',sans-serif;}
+
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 45%, rgba(140,20,70,0.12) 0%, transparent 70%),
+    #09080c;
+}
+
+#heart-canvas{position:fixed;inset:0;z-index:2;cursor:pointer;}
+
+/* name */
+#name-wrap{
+  position:fixed;inset:0;z-index:8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;gap:10px;
+}
+.nw-para{font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:rgba(255,255,255,0.2);opacity:0;animation:fadeIn 1s ease 0.6s forwards;}
+.nw-name{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(36px,9vw,64px);color:rgba(255,255,255,0.92);
+  text-shadow:0 0 50px rgba(220,60,100,0.25);
+  opacity:0;animation:fadeIn 1s ease 1.2s forwards;
+}
+.nw-hint{font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.16);opacity:0;animation:breathe 2.5s ease-in-out infinite 3s;}
+
+/* premium badge */
+#premium-badge{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.04);
+  border:0.5px solid rgba(255,255,255,0.1);
+  padding:6px 16px;border-radius:40px;
+  font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
+  color:rgba(255,200,100,0.7);
+  opacity:0;animation:fadeIn 1s ease 0.4s forwards;
+  backdrop-filter:blur(8px);
+}
+.badge-star{font-size:10px;}
+
+/* card overlay */
+#card-overlay{
+  position:fixed;inset:0;z-index:20;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:56px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  opacity:0;pointer-events:none;transition:opacity 1.2s ease;
+}
+#card-overlay.show{opacity:1;pointer-events:auto;}
+
+.card-wrap{width:100%;max-width:390px;margin:auto;}
+.card{
+  background:rgba(255,255,255,0.03);
+  border:0.5px solid rgba(255,255,255,0.09);
+  border-radius:3px;overflow:hidden;
+  backdrop-filter:blur(24px);
+  box-shadow:0 40px 80px rgba(0,0,0,0.7);
+}
+.card-top{
+  padding:44px 36px 36px;text-align:center;
+  border-bottom:0.5px solid rgba(255,255,255,0.05);
+  position:relative;
+}
+.card-top::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(180,20,80,0.1) 0%,transparent 70%);
+  pointer-events:none;
+}
+.prem-label{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:9px;letter-spacing:0.25em;text-transform:uppercase;
+  color:rgba(255,200,100,0.6);margin-bottom:18px;
+}
+.card-to{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(34px,8vw,52px);color:#fff;line-height:1;margin-bottom:6px;
+}
+.card-tagline{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.18);}
+.card-mid{padding:32px 36px;border-bottom:0.5px solid rgba(255,255,255,0.05);}
+.card-msg{
+  font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;
+  font-size:clamp(15px,4vw,18px);color:rgba(255,255,255,0.65);
+  line-height:1.9;text-align:center;
+}
+.msg-char{display:inline;opacity:0;transition:opacity 0.04s;}
+
+/* photo note */
+.photo-note{
+  margin-top:24px;
+  border:0.5px dashed rgba(255,200,100,0.2);
+  border-radius:3px;padding:14px 16px;
+  text-align:center;
+}
+.photo-note-text{font-size:11px;color:rgba(255,200,100,0.5);letter-spacing:0.05em;line-height:1.6;}
+
+.card-bot{padding:20px 36px;display:flex;justify-content:space-between;align-items:center;}
+.from-lbl{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,255,255,0.16);margin-bottom:3px;}
+.from-val{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:rgba(255,255,255,0.6);}
+.brand{font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.1);text-align:right;line-height:1.7;}
+.brand span{color:rgba(255,200,100,0.3);}
+
+.bar{position:fixed;left:0;right:0;background:#09080c;z-index:30;height:0;transition:height 0.9s cubic-bezier(0.4,0,0.2,1);}
+#bar-t{top:0;}#bar-b{bottom:0;}
+
+#audio-btn{
+  position:fixed;top:16px;right:16px;z-index:100;
+  width:32px;height:32px;border-radius:50%;
+  border:0.5px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.03);
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;font-size:12px;
+}
+#audio-btn.show{display:flex;}
+.ri{opacity:0;}
+.ri.on{animation:fadeUp 0.9s ease forwards;}
+
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes breathe{0%,100%{opacity:0.12;}50%{opacity:0.45;}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════
+     ✏️  EDITA AQUÍ
+══════════════════════ -->
+<script>
+const C = {
+  para:    "Sofía",
+  mensaje: "Cada una de estas fotos es un recuerdo que guardo con todo el cariño del mundo. Gracias por llenar mi vida de momentos tan bonitos.",
+  de:      "Con todo mi amor",
+  musica:  "",
+
+  // ── FOTOS ──────────────────────────────────────────────
+  // Reemplaza cada URL con el enlace de ImgBB o Cloudinary
+  // Ejemplo: "https://i.ibb.co/abc123/foto1.jpg"
+  fotos: [
+    "", "", "", "", "",
+    "", "", "", "", "",
+    "", "", "", "", "",
+    "", "", "", "", "",
+  ],
+};
+</script>
+<!-- ══════════════════════ -->
+
+<div id="bg"></div>
+<canvas id="heart-canvas"></canvas>
+
+<div id="premium-badge"><span class="badge-star">✦</span> versión premium</div>
+
+<div id="name-wrap">
+  <p class="nw-para">para</p>
+  <p class="nw-name" id="nwName"></p>
+  <p class="nw-hint">toca el corazón</p>
+</div>
+
+<div class="bar" id="bar-t"></div>
+<div class="bar" id="bar-b"></div>
+<button id="audio-btn" onclick="toggleAudio()">🔇</button>
+
+<div id="card-overlay">
+  <div class="card-wrap">
+    <div class="card">
+      <div class="card-top">
+        <p class="prem-label ri" id="r0">✦ &nbsp;recuerdos juntos &nbsp;✦</p>
+        <h2 class="card-to ri" id="r1"></h2>
+        <p class="card-tagline ri" id="r2">cada foto, un momento nuestro</p>
+      </div>
+      <div class="card-mid">
+        <p class="card-msg" id="cardMsg"></p>
+        <div class="photo-note ri" id="r3">
+          <p class="photo-note-text">📷 En la versión personalizada, cada cuadro<br>del corazón es una foto de ustedes.</p>
+        </div>
+      </div>
+      <div class="card-bot">
+        <div class="ri" id="r4">
+          <p class="from-lbl">de parte de</p>
+          <p class="from-val" id="fromVal"></p>
+        </div>
+        <div class="brand ri" id="r5">enviado con<br><span>Ábrelo ✦</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('nwName').textContent = C.para;
+document.getElementById('r1').textContent = C.para;
+document.getElementById('fromVal').textContent = C.de;
+if(C.musica){ window._aud=new Audio(C.musica);window._aud.loop=true;window._aud.volume=0.45;document.getElementById('audio-btn').classList.add('show'); }
+
+// ━━ CANVAS ━━
+const canvas = document.getElementById('heart-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, scale;
+const PHOTO_COUNT = 20;
+const CELL = 38; // size of each photo cell
+
+// Palettes for placeholder cells (demo mode)
+const PALETTES = [
+  ['#3a1a2e','#6b2d4f'],['#1a2a3a','#2d4f6b'],['#1a3a2a','#2d6b4f'],
+  ['#3a2a1a','#6b4f2d'],['#2a1a3a','#4f2d6b'],['#1a3a3a','#2d6b6b'],
+  ['#3a1a1a','#6b2d2d'],['#2a3a1a','#4f6b2d'],['#1a1a3a','#2d2d6b'],
+  ['#3a2a2a','#6b4f4f'],['#2a1a2a','#4f2d4f'],['#2a2a1a','#4f4f2d'],
+  ['#1a2a2a','#2d4f4f'],['#3a3a1a','#6b6b2d'],['#2a3a3a','#4f6b6b'],
+  ['#3a1a3a','#6b2d6b'],['#1a3a1a','#2d6b2d'],['#3a2a3a','#6b4f6b'],
+  ['#2a2a3a','#4f4f6b'],['#3a3a2a','#6b6b4f'],
+];
+
+function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; scale=Math.min(W,H)*0.022; }
+resize(); window.addEventListener('resize',()=>{ resize(); buildCells(); });
+
+// Heart parametric
+function heartXY(t){
+  return {
+    x: scale*16*Math.pow(Math.sin(t),3),
+    y: scale*-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))
+  };
+}
+
+// Sample evenly spaced points on heart
+function sampleHeart(n){
+  const raw=[];
+  for(let i=0;i<600;i++){ const t=(i/600)*Math.PI*2; const p=heartXY(t); raw.push(p); }
+  // arc length
+  const lens=[0];
+  for(let i=1;i<raw.length;i++){
+    const dx=raw[i].x-raw[i-1].x,dy=raw[i].y-raw[i-1].y;
+    lens.push(lens[i-1]+Math.sqrt(dx*dx+dy*dy));
+  }
+  const total=lens[lens.length-1];
+  const step=total/n;
+  const pts=[];
+  for(let s=0;s<n;s++){
+    const target=s*step;
+    let idx=0;
+    for(let i=1;i<lens.length;i++){if(lens[i]>=target){idx=i;break;}}
+    pts.push({x:W/2+raw[idx].x, y:H/2+raw[idx].y});
+  }
+  return pts;
+}
+
+let cells=[];
+let phase='gather'; // gather | pulse | explode | card
+let tick=0;
+let clicked=false;
+let imgs=[];
+
+function buildCells(){
+  const pts = sampleHeart(PHOTO_COUNT);
+  cells = pts.map((pt,i)=>({
+    tx: pt.x, ty: pt.y,
+    x: W/2+(Math.random()-0.5)*W*1.1,
+    y: H/2+(Math.random()-0.5)*H*1.1,
+    vx:0, vy:0,
+    rot: (Math.random()-0.5)*0.6,
+    targetRot: 0,
+    alpha: 0,
+    progress: 0,
+    idx: i,
+    pal: PALETTES[i % PALETTES.length],
+    img: imgs[i] || null,
+    explodeVx: (Math.random()-0.5)*16,
+    explodeVy: (Math.random()-0.5)*16 - 2,
+    explodeVr: (Math.random()-0.5)*0.15,
+    scale: 1,
+  }));
+}
+
+// Load images if provided
+function loadImages(){
+  const validUrls = C.fotos.filter(u=>u&&u.trim()!=='');
+  if(validUrls.length===0){ buildCells(); return; }
+  let loaded=0;
+  imgs = new Array(PHOTO_COUNT).fill(null);
+  C.fotos.forEach((url,i)=>{
+    if(!url||url.trim()===''){loaded++;if(loaded===PHOTO_COUNT)buildCells();return;}
+    const img=new Image(); img.crossOrigin='anonymous';
+    img.onload=img.onerror=()=>{ imgs[i]=img.complete&&img.naturalWidth?img:null; loaded++; if(loaded===PHOTO_COUNT)buildCells(); };
+    img.src=url;
+  });
+}
+loadImages();
+
+// ━━ CLICK ━━
+canvas.addEventListener('click',onTap);
+canvas.addEventListener('touchend',e=>{e.preventDefault();onTap();},{passive:false});
+function onTap(){ if(phase==='pulse'&&!clicked){clicked=true;phase='explode';setTimeout(revealCard,1000);} }
+
+// ━━ DRAW CELL ━━
+function drawCell(c){
+  ctx.save();
+  ctx.translate(c.x, c.y);
+  ctx.rotate(c.rot);
+  ctx.globalAlpha = Math.min(1, c.alpha);
+
+  const s = CELL*c.scale;
+  const r = 4;
+
+  // rounded rect clip
+  ctx.beginPath();
+  ctx.roundRect(-s/2,-s/2,s,s,r);
+  ctx.clip();
+
+  if(c.img){
+    ctx.drawImage(c.img,-s/2,-s/2,s,s);
+  } else {
+    // gradient placeholder
+    const g=ctx.createLinearGradient(-s/2,-s/2,s/2,s/2);
+    g.addColorStop(0,c.pal[0]); g.addColorStop(1,c.pal[1]);
+    ctx.fillStyle=g;
+    ctx.fillRect(-s/2,-s/2,s,s);
+    // camera icon
+    ctx.font=`${s*0.35}px sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.globalAlpha=0.25;
+    ctx.fillStyle='#fff';
+    ctx.fillText('📷',0,0);
+    ctx.globalAlpha=Math.min(1,c.alpha);
+    // number
+    ctx.font=`300 ${s*0.18}px 'Montserrat',sans-serif`;
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    ctx.fillText(`${c.idx+1}`,0,s*0.28);
+  }
+
+  // border
+  ctx.beginPath();
+  ctx.roundRect(-s/2,-s/2,s,s,r);
+  ctx.strokeStyle='rgba(255,255,255,0.1)';
+  ctx.lineWidth=0.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ━━ ANIMATE ━━
+function animate(){
+  ctx.clearRect(0,0,W,H);
+  tick++;
+
+  cells.forEach(c=>{
+    if(phase==='gather'){
+      c.progress=Math.min(1,c.progress+0.014+(c.idx*0.0008));
+      const e=easeOut(c.progress);
+      c.x=lerp(c.x,c.tx,0.08);
+      c.y=lerp(c.y,c.ty,0.08);
+      c.rot=lerp(c.rot,c.targetRot,0.06);
+      c.alpha=c.progress;
+
+    } else if(phase==='pulse'){
+      // gentle float + pulse scale
+      const wave=Math.sin(tick*0.04+c.idx*0.35)*0.04;
+      c.scale=1+wave;
+      c.x=lerp(c.x,c.tx,0.06);
+      c.y=lerp(c.y,c.ty,0.06);
+      c.alpha=Math.min(1,c.alpha+0.03);
+      // slight orbit
+      const orbitR=2;
+      c.tx=W/2+sampleHeart(PHOTO_COUNT)[c.idx].x-W/2+Math.cos(tick*0.008+c.idx)*orbitR;
+      c.ty=H/2+sampleHeart(PHOTO_COUNT)[c.idx].y-H/2+Math.sin(tick*0.008+c.idx)*orbitR;
+
+    } else if(phase==='explode'){
+      c.x+=c.explodeVx; c.y+=c.explodeVy;
+      c.explodeVy+=0.25; c.explodeVx*=0.97;
+      c.rot+=c.explodeVr;
+      c.alpha=Math.max(0,c.alpha-0.028);
+      c.scale=Math.max(0.5,c.scale-0.012);
+    }
+
+    if(c.alpha>0) drawCell(c);
+  });
+
+  // heart glow during pulse
+  if(phase==='pulse'){
+    const pulse=(Math.sin(tick*0.05)+1)*0.5;
+    ctx.save();
+    ctx.translate(W/2,H/2);
+    ctx.beginPath();
+    for(let t=0;t<Math.PI*2;t+=0.04){
+      const p=heartXY(t);
+      t<0.04?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle=`rgba(220,80,120,${0.03+pulse*0.05})`;
+    ctx.lineWidth=1; ctx.stroke();
+    ctx.restore();
+  }
+
+  if(phase==='gather'){
+    const done=cells.every(c=>c.progress>=0.98);
+    if(done||tick>180) phase='pulse';
+  }
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function easeOut(t){return 1-Math.pow(1-t,3);}
+
+// ━━ REVEAL ━━
+function revealCard(){
+  document.getElementById('name-wrap').style.display='none';
+  document.getElementById('premium-badge').style.display='none';
+  document.getElementById('bar-t').style.height='50px';
+  document.getElementById('bar-b').style.height='50px';
+  const ov=document.getElementById('card-overlay');
+  ov.classList.add('show');
+  document.getElementById('audio-btn').classList.add('show');
+  ['r0','r1','r2','r3','r4','r5'].forEach((id,i)=>{
+    setTimeout(()=>{const el=document.getElementById(id);if(el){el.classList.add('on');el.style.animationDelay='0s';}},300+i*180);
+  });
+  setTimeout(typeMsg,600);
+}
+
+function typeMsg(){
+  const el=document.getElementById('cardMsg');
+  el.innerHTML='';
+  `"${C.mensaje}"`.split('').forEach((ch,i)=>{
+    const s=document.createElement('span');
+    s.className='msg-char';
+    s.textContent=ch===' '?'\u00a0':ch;
+    el.appendChild(s);
+    setTimeout(()=>s.style.opacity='1',i*18);
+  });
+}
+
+let audPlay=false;
+function toggleAudio(){
+  if(!window._aud)return;
+  if(audPlay){window._aud.pause();document.getElementById('audio-btn').textContent='🔇';}
+  else{window._aud.play();document.getElementById('audio-btn').textContent='🔊';}
+  audPlay=!audPlay;
+}
+</script>
+</body>
+</html>
