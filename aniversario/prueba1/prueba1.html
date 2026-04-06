@@ -438,21 +438,7 @@ if (CONFIG.musica) {
     velX = 0; velY = 0;
     hideHint();
   }, { passive: false });
-
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (!isDragging) return;
-    const t = e.touches[0];
-    const dx = t.clientX - lastTX;
-    const dy = t.clientY - lastTY;
-    velX = dx * 0.38;
-    velY = dy * 0.38;
-    targetX += dx;
-    targetY += dy;
-    lastTX = t.clientX;
-    lastTY = t.clientY;
-  }, { passive: false });
-
+  
   canvas.addEventListener('touchend', () => { isDragging = false; });
 
   function hideHint() {
