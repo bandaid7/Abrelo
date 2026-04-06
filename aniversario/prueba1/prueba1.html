@@ -464,8 +464,7 @@ canvas.addEventListener('touchmove', e => {
   if (lastPinchDist !== null) {
     const delta = dist - lastPinchDist;
     currentScale = Math.max(0.4, Math.min(3, currentScale + delta * 0.005));
-    canvas.style.transform = `scale(${currentScale})`;
-    canvas.style.transformOrigin = 'center center';
+    ctx.setTransform(currentScale, 0, 0, currentScale, W/2 * (1 - currentScale), H/2 * (1 - currentScale));
   }
   lastPinchDist = dist;
 }, { passive: false });
