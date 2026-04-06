@@ -447,8 +447,8 @@ if (CONFIG.musica) {
       document.getElementById('hint').style.opacity = '0';
     }
   }
-})();
-let currentScale = 1;
+
+  let currentScale = 1;
 let lastPinchDist = null;
 
 canvas.addEventListener('touchstart', e => {
@@ -473,6 +473,8 @@ canvas.addEventListener('touchmove', e => {
 canvas.addEventListener('touchend', e => {
   if (e.touches.length < 2) lastPinchDist = null;
 });
+})();
+
 </script>
 </body>
 </html>
